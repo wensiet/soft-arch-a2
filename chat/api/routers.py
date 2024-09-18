@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from starlette.responses import HTMLResponse
 
-from chat import settings
 from chat.api.room import router as room_router
 from chat.service.room import RoomService
 
@@ -22,11 +21,13 @@ html = """
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
         </form>
+        <h3 id='messages_count'>
+        </h3>
         <ul id='messages'>
         </ul>
         <script>
-            var ws = new WebSocket("ws://{web_socket_host}/room/websocket");
-            ws.onmessage = function(event) {{
+            var ws = new WebSocket("/room/websocket");
+            ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
                 var content = document.createTextNode(event.data)
@@ -34,13 +35,21 @@ html = """
                 message.appendChild(content)
                 messages.appendChild(message)
                 messages.appendChild(br)
-            }};
-            function sendMessage(event) {{
+
+                fetch('/room/message_count')
+                    .then(response => response.json())
+                    .then(data => {
+                        var messageCount = data.message_count;
+                        document.getElementById('messages_count').innerText = "Messages Count: " + messageCount;
+                    })
+                    .catch(error => console.error('Error fetching message count:', error));
+            };
+            function sendMessage(event) {
                 var input = document.getElementById("messageText")
                 ws.send(input.value)
                 input.value = ''
                 event.preventDefault()
-            }}
+            }
         </script>
     </body>
 </html>
@@ -49,4 +58,4 @@ html = """
 
 @app.get("/")
 async def get():
-    return HTMLResponse(html.format(web_socket_host=settings.WEBSOCKET_HOST))
+    return HTMLResponse(html)
