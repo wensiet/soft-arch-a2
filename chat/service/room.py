@@ -75,9 +75,9 @@ class RoomService:
 
     async def connect(self, websocket: WebSocket) -> str:
         await websocket.accept()
-        self.active_connections.append(websocket)
         user_id = self._generate_unique_name()
         await self.send_message(f"User {user_id} joined the chat")
+        self.active_connections.append(websocket)
         return user_id
 
     async def disconnect(self, websocket: WebSocket, author: str):
