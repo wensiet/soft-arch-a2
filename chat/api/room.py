@@ -13,7 +13,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            await room_service.send_message(data, author)
+            await room_service.send_message(websocket, data, author)
     except WebSocketDisconnect:
         await room_service.disconnect(websocket, author)
 

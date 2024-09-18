@@ -77,21 +77,22 @@ class RoomService:
         await websocket.accept()
         self.active_connections.append(websocket)
         user_id = self._generate_unique_name()
-        await self.send_message(f"User {user_id} joined the chat")
+        await self.send_message(websocket, f"User {user_id} joined the chat")
         return user_id
 
     async def disconnect(self, websocket: WebSocket, author: str):
         self.active_connections.remove(websocket)
         self.occupied_names.remove(author)
-        await self.send_message(f"User {author} left the chat")
+        await self.send_message(websocket, f"User {author} left the chat")
 
-    async def send_message(self, message: str, author: str | None = None):
+    async def send_message(self, websocket: WebSocket, message: str, author: str | None = None):
         self.message_count += 1
         for connection in self.active_connections:
-            if author:
-                await connection.send_text(f"{author}: {message}")
-            else:
-                await connection.send_text(message)
+            if connection != websocket:
+                if author:
+                    await connection.send_text(f"{author}: {message}")
+                else:
+                    await connection.send_text(message)
 
     def get_message_count(self) -> int:
         return self.message_count
