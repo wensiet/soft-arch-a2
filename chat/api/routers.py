@@ -76,9 +76,11 @@ html = """
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 5px;
-            max-width: 300px;
+            max-width: 350px;
             word-wrap: break-word;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Message alignment for other users */
@@ -92,6 +94,11 @@ html = """
             background-color: #007bff;
             color: white;
             align-self: flex-end;
+        }
+
+        .message .timestamp {
+            font-size: 0.8rem;
+            color: #1a1919;
         }
 
         /* Input area */
@@ -179,10 +186,16 @@ html = """
         const messagesContainer = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
 
-        function addMessage(msg) {
+        function formatTimestamp(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${date.toISOString().split('T')[0]} ${hours}:${minutes}`;
+        }
+
+        function addMessage(author, message, timestamp) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${msg.sender === 'Me' ? 'user' : 'other-user'}`;
-            messageDiv.innerHTML = `<strong>${msg.sender}:</strong> ${msg.message}`;
+            messageDiv.className = `message ${author === 'Me' ? 'user' : 'other-user'}`;
+            messageDiv.innerHTML = `<span class="timestamp">${timestamp}</span><strong>${author}:</strong> ${message}`;
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
@@ -190,31 +203,32 @@ html = """
         function sendMessage() {
             const inputValue = messageInput.value.trim();
             if (inputValue) {
-                const userMessage = { sender: 'Me', message: inputValue };
-                addMessage(userMessage);
+                const timestamp = formatTimestamp(new Date());
+                addMessage('Me', inputValue, timestamp);
                 messageInput.value = '';
                 socket.send(inputValue);
             }
         }
 
-        // Initialize WebSocket connection
         const socket = new WebSocket(`ws://${window.location.host}/room/websocket`);
 
         socket.onmessage = (event) => {
             const data = event.data;
+            const timestamp = formatTimestamp(new Date());
 
             if (data.startsWith('User ') && data.includes('joined the chat')) {
-                const newMessage = { sender: event.data.split(' joined')[0], message: ' joined the chat' };
-                addMessage(newMessage);
+                addMessage(data.split(' joined the chat')[0], 'joined the chat', timestamp);
             } else {
-                const newMessage = { sender: event.data.split(':')[0], message: event.data.split(':')[1] };
-                addMessage(newMessage);
+                const [author, ...messageParts] = data.split(':');
+                const message = messageParts.join(':').trim(); // Join the rest of the message content back together
+                addMessage(author.trim(), message, timestamp);
             }
         };
-    
+
     </script>
 </body>
 </html>
+
 """
 
 @app.get("/")
