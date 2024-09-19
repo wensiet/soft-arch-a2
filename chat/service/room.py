@@ -1,4 +1,3 @@
-import datetime
 import random
 import uuid
 from typing import Type
@@ -93,9 +92,9 @@ class RoomService:
         for connection in self.active_connections:
             if connection != websocket:
                 if author:
-                    await connection.send_text(f"{datetime.datetime.now().strftime(TIME_FORMAT)} {author}: {message}")
+                    await connection.send_text(f"{author}: {message}")
                 else:
-                    await connection.send_text(f"{datetime.datetime.now().strftime(TIME_FORMAT)} {message}")
+                    await connection.send_text(f"{message}")
 
     def get_message_count(self) -> int:
         return self.message_count
