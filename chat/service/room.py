@@ -92,7 +92,7 @@ class RoomService:
                 if author:
                     await connection.send_text(f"{author}: {message}")
                 else:
-                    await connection.send_text(f"{message}")
+                    await connection.send_text(message)
 
     def get_message_count(self) -> int:
         return self.message_count
