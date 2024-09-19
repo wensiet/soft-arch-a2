@@ -42,8 +42,6 @@ name_alphabet = {
     ]
 }
 
-TIME_FORMAT = "%Y-%m-%d %H:%M"
-
 
 def _generate_name() -> str:
     color = random.choice(name_alphabet["colors"])
